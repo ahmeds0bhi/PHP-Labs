@@ -1,3 +1,20 @@
+<?php
+include "config.php"; // Config file
+// GET method (to get the results from <a href >)
+
+if(isset($_GET['user_id']) and $_GET['user_id'] !=''){
+    $user_id = $_GET['user_id'];
+    mysqli_select_db($link , $dbname);
+    $display = "SELECT  user_name,user_email,user_gender,user_mail_status FROM user WHERE user_id = $user_id";
+    mysqli_select_db($link , $dbname);
+    $result = mysqli_query($link , $display);
+    $user = mysqli_fetch_assoc($result);
+
+} else{
+    header("location:table.php");
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,16 +39,18 @@
 <body>
 <div class="d-flex justify-content-center mt-5 bg-transparent text-dark">
 
-<!---------------------------start of form ------------------>
 
-<form action="<?php $_PHP_SELF ?>" method="post">
+<?php    if(isset($user_id)){ ?>
+
+<form action="<?php $_PHP_SELF ?>" method="POST">
+        <input type="hidden" name="user_id" value="<?php $user_id ?>" />
         <h2 style="color:white;">User register form</h2>
 
         <p style="color:white;">Please fill this form and submit to add user record to the database</p>
 
         <!------------------------Name input ------------------>
             <label>Name:</label><span style="color: red;"> *</span>
-            <input class="form-control w-100" type="text" name="name" value ="<?php echo isset($_POST['name']) ? $_POST['name'] : '' ?>" /> 
+            <input class="form-control w-100" type="text" name="name" value ="<?php echo $user['user_name'] ?>" /> 
             <span>
             <?php 
             if(isset($_POST['submit'])){
@@ -46,7 +65,7 @@
             <!------------------------Email input ------------------>
 
             <label>Email:</label><span style="color: red;">*</span>
-            <input type="email" class="form-control w-100" name="email" value ="<?php echo isset($_POST['email']) ? $_POST['email'] : '' ?>"/>
+            <input type="email" class="form-control w-100" name="email" value ="<?php echo $user['user_email'] ?>"/>
             <span>
             <?php 
             if(isset($_POST['submit'])){
@@ -57,12 +76,11 @@
             ?>
             </span><br>
          
-
             <!------------------------Gender input ------------------>
 
             Gender:<span style="color: red;">*</span>
-            <input class="ms-2 form-check-input" type="radio" name="gender" value ="female"<?php if(isset($_POST['gender'])) echo "checked='checked'"; ?> >Female
-            <input class="ms-4 form-check-input" type="radio" name="gender" value ="male"<?php if(isset($_POST['gender'])) echo "checked='checked'"; ?> >Male <br>
+            <input class="ms-2 form-check-input" type="radio" name="gender" value ="female"<?php if($user['user_gender'] == "female") echo "checked='checked'"; ?> >Female
+            <input class="ms-4 form-check-input" type="radio" name="gender" value ="male"<?php if($user['user_gender'] == "male") echo "checked='checked'"; ?> >Male <br>
              <span>
             <?php 
             if(isset($_POST['submit'])){
@@ -76,11 +94,14 @@
             <!------------------------Recieve email input ------------------>
             Recieve email from us<span style="color: red;">*</span>
             <input type="hidden" name="agree" value = "no" /> 
-            <input class="form-check-input" type="checkbox" name="agree" value = "yes " /> <br>
-
+            <input class="form-check-input" type="checkbox" name="agree" value = "yes"/> <br>
         
             <button class="btn btn-primary mt-3 mb-3 form-control w-100" type="submit" name="submit"> Submit</button>
-            
+            <a href="table.php" class="btn btn-info form-control w-100">Back </a>
+    <?php } else{
+        header("location:table.php");
+        }
+    ?>
         <!---------------------------PHP code -------------------------->
     <?php   
     
@@ -89,16 +110,21 @@
     //--------------------Saving data to DataBase --------------//
         
     if(isset($_POST['submit'])){
-        if(isset($_POST['name']) && !empty($_POST['name'] &&
-        isset($_POST['email']) && !empty($_POST['email']) &&     
-        isset($_POST['gender']) && !empty($_POST['gender']) &&
-        isset($_POST['agree'])))        
+        
+        $user_name = $_POST['name'];
+        $user_email = $_POST['email'];
+        $user_gender = $_POST['gender'];
+        $user_mail_status = $_POST['agree'];
+
+        if(isset($user_name) && !empty($user_name) &&
+        isset($user_email) && !empty($user_email) &&     
+        isset($user_gender) && !empty($user_gender) &&
+        isset($user_mail_status))        
         {
             mysqli_select_db($link, $dbname);
                 
-                $mysql = "INSERT INTO user (user_name , user_email , user_gender, user_mail_status)
-                VALUES ('".$_POST['name']." ', '".$_POST['email']. " ' , '".$_POST['gender']."', '".$_POST['agree']."');";
-            
+                $mysql = "UPDATE user SET user_name = '$user_name'  , user_email = '$user_email' , user_gender = '$user_gender', user_mail_status = '$user_mail_status' WHERE user_id = $user_id ";
+
                 $retrive = mysqli_query($link , $mysql);
                 
                 if(!$retrive){
@@ -112,6 +138,7 @@
     ?>
 
 </form>
+
 </div>
 <!---------------------------end of form ------------------>
 
